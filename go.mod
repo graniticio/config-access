@@ -1,4 +1,4 @@
-module config-navigator
+module github.com/graniticio/config-access
 
 go 1.20
 

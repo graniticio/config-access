@@ -1,7 +1,7 @@
 // Copyright 2024 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
-package config_navigator
+package config_access
 
 import (
 	"errors"
@@ -13,6 +13,79 @@ const PathSeparator = "."
 
 type ConfigNode = map[string]interface{}
 
+// MissingPathError indicates that the a problem was caused by there being no value at the supplied
+// config path
+type MissingPathError struct {
+	message string
+}
+
+func (mp MissingPathError) Error() string {
+	return mp.message
+}
+
+type Selector interface {
+	PathExists(path string) bool
+	Value(path string) interface{}
+	ObjectVal(path string) (ConfigNode, error)
+	StringVal(path string) (string, error)
+	IntVal(path string) (int, error)
+	Float64Val(path string) (float64, error)
+	Array(path string) ([]interface{}, error)
+	BoolVal(path string) (bool, error)
+	Flush()
+}
+
+func NewDefaultSelector(config ConfigNode, errorOnMissingObjectPath, errorOnMissingArrayPath bool) Selector {
+	ds := new(DefaultSelector)
+	ds.config = config
+	ds.errorOnMissingArrayPath = errorOnMissingArrayPath
+	ds.errorOnMissingObjectPath = errorOnMissingObjectPath
+
+	return ds
+}
+
+type DefaultSelector struct {
+	errorOnMissingObjectPath bool
+	errorOnMissingArrayPath  bool
+	config                   ConfigNode
+}
+
+func (dfe *DefaultSelector) Flush() {
+	dfe.config = nil
+}
+
+func (dfe *DefaultSelector) PathExists(path string) bool {
+	return PathExists(path, dfe.config)
+}
+
+func (dfe *DefaultSelector) Value(path string) interface{} {
+	return Value(path, dfe.config)
+}
+
+func (dfe *DefaultSelector) ObjectVal(path string) (ConfigNode, error) {
+	return ObjectVal(path, dfe.config, dfe.errorOnMissingObjectPath)
+}
+
+func (dfe *DefaultSelector) StringVal(path string) (string, error) {
+	return StringVal(path, dfe.config)
+}
+
+func (dfe *DefaultSelector) IntVal(path string) (int, error) {
+	return IntVal(path, dfe.config)
+}
+
+func (dfe *DefaultSelector) Float64Val(path string) (float64, error) {
+	return Float64Val(path, dfe.config)
+}
+
+func (dfe *DefaultSelector) Array(path string) ([]interface{}, error) {
+	return Array(path, dfe.config, dfe.errorOnMissingArrayPath)
+}
+
+func (dfe *DefaultSelector) BoolVal(path string) (bool, error) {
+	return BoolVal(path, dfe.config)
+}
+
 func PathExists(path string, node ConfigNode) bool {
 	value := Value(path, node)
 
@@ -21,6 +94,10 @@ func PathExists(path string, node ConfigNode) bool {
 
 // Value returns the value at the supplied path or nil if the path does not exist of points to a null value.
 func Value(path string, node ConfigNode) interface{} {
+
+	if node == nil {
+		return nil
+	}
 
 	splitPath := strings.Split(path, PathSeparator)
 
@@ -34,6 +111,10 @@ func Value(path string, node ConfigNode) interface{} {
 // If errIfMissing is set to true, an error will be return if the supplied path does not exist otherwise a nil
 // array without and error will be returned.
 func ObjectVal(path string, node ConfigNode, errIfMissing bool) (ConfigNode, error) {
+
+	if node == nil {
+		return nil, fmt.Errorf("supplied ConfigNode is nil")
+	}
 
 	if errIfMissing && !PathExists(path, node) {
 		return nil, errors.New("No such path " + path)
@@ -53,6 +134,10 @@ func ObjectVal(path string, node ConfigNode, errIfMissing bool) (ConfigNode, err
 // StringVal returns the string value of the string at the supplied path. Does not convert other types to
 // a string, so will return an error if the value is not already a string.
 func StringVal(path string, node ConfigNode) (string, error) {
+
+	if node == nil {
+		return "", fmt.Errorf("supplied ConfigNode is nil")
+	}
 
 	v := Value(path, node)
 
@@ -76,6 +161,10 @@ func StringVal(path string, node ConfigNode) (string, error) {
 // or cannot be converted to an int.
 func IntVal(path string, node ConfigNode) (int, error) {
 
+	if node == nil {
+		return 0, fmt.Errorf("supplied ConfigNode is nil")
+	}
+
 	v := Value(path, node)
 
 	if v == nil {
@@ -90,6 +179,10 @@ func IntVal(path string, node ConfigNode) (int, error) {
 
 // Float64Val returns the float64 value of the  number at the supplied path. An error will be returned if the value is not a number.
 func Float64Val(path string, node ConfigNode) (float64, error) {
+
+	if node == nil {
+		return 0, fmt.Errorf("supplied ConfigNode is nil")
+	}
 
 	v := Value(path, node)
 
@@ -108,6 +201,10 @@ func Float64Val(path string, node ConfigNode) (float64, error) {
 // If errIfMissing is set to true, an error will be return if the supplied path does not exist otherwise a nil
 // array without and error will be returned.
 func Array(path string, node ConfigNode, errIfMissing bool) ([]interface{}, error) {
+
+	if node == nil {
+		return nil, fmt.Errorf("supplied ConfigNode is nil")
+	}
 
 	if errIfMissing && !PathExists(path, node) {
 		return nil, errors.New("No such path " + path)
@@ -129,6 +226,10 @@ func Array(path string, node ConfigNode, errIfMissing bool) ([]interface{}, erro
 // Note this method only supports the JSON definition of bool (true, false) not the Go definition (true, false, 1, 0 etc) or
 // extended YAML definitions.
 func BoolVal(path string, node ConfigNode) (bool, error) {
+
+	if node == nil {
+		return false, fmt.Errorf("supplied ConfigNode is nil")
+	}
 
 	v := Value(path, node)
 
