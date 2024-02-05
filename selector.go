@@ -33,6 +33,7 @@ type Selector interface {
 	Array(path string) ([]interface{}, error)
 	BoolVal(path string) (bool, error)
 	Flush()
+	Config() ConfigNode
 }
 
 func NewDefaultSelector(config ConfigNode, errorOnMissingObjectPath, errorOnMissingArrayPath bool) Selector {
@@ -40,6 +41,13 @@ func NewDefaultSelector(config ConfigNode, errorOnMissingObjectPath, errorOnMiss
 	ds.config = config
 	ds.errorOnMissingArrayPath = errorOnMissingArrayPath
 	ds.errorOnMissingObjectPath = errorOnMissingObjectPath
+
+	return ds
+}
+
+func NewGraniticSelector(config ConfigNode) Selector {
+	ds := new(DefaultSelector)
+	ds.config = config
 
 	return ds
 }
@@ -84,6 +92,10 @@ func (dfe *DefaultSelector) Array(path string) ([]interface{}, error) {
 
 func (dfe *DefaultSelector) BoolVal(path string) (bool, error) {
 	return BoolVal(path, dfe.config)
+}
+
+func (dfe *DefaultSelector) Config() ConfigNode {
+	return dfe.config
 }
 
 func PathExists(path string, node ConfigNode) bool {

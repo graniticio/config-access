@@ -135,6 +135,35 @@ func TestPostFlushBehaviour(t *testing.T) {
 
 }
 
+func TestMapCallByReferenceInSelector(t *testing.T) {
+
+	node := loadTestFile(t, "simple.json")
+
+	cs := ca.NewDefaultSelector(node, false, false)
+
+	s, err := cs.StringVal("simpleOne.String")
+
+	assert.EqualValues(t, "abc", s)
+	assert.NoError(t, err)
+
+	so := node["simpleOne"].(ca.ConfigNode)
+	so["String"] = "123"
+
+	s, err = cs.StringVal("simpleOne.String")
+
+	assert.EqualValues(t, "123", s)
+	assert.NoError(t, err)
+
+	c := cs.Config()["simpleOne"].(ca.ConfigNode)
+	c["String"] = "XYZ"
+
+	s, err = cs.StringVal("simpleOne.String")
+
+	assert.EqualValues(t, "XYZ", s)
+	assert.NoError(t, err)
+
+}
+
 func TestMissingPath(t *testing.T) {
 
 	node := loadTestFile(t, "simple.json")
