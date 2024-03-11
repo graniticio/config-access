@@ -1,0 +1,7 @@
+baseString: xyz
+baseNumber: 200
+baseBool: false
+baseObject:
+  objectField2: inAdditions
+baseArray:
+  - 4

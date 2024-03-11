@@ -21,134 +21,157 @@ type SimpleConfig struct {
 
 func TestPopulateObject(t *testing.T) {
 
-	config := loadTestFile(t, "simple.json")
+	jsonConf := loadJsonTestFile(t, "simple.json")
+	yamlConf := loadYamlTestFile(t, "simple.yaml")
 
-	var sc SimpleConfig
+	for _, node := range []ca.ConfigNode{jsonConf, yamlConf} {
 
-	err := ca.Populate("simpleOne", &sc, config)
+		var sc SimpleConfig
 
-	assert.NoError(t, err)
+		err := ca.Populate("simpleOne", &sc, node)
 
-	assert.EqualValues(t, "abc", sc.String)
+		assert.NoError(t, err)
 
-	assert.True(t, sc.Bool)
+		assert.EqualValues(t, "abc", sc.String)
 
-	assert.EqualValues(t, 32, sc.Int)
+		assert.True(t, sc.Bool)
 
-	assert.EqualValues(t, 32.22, sc.Float)
+		assert.EqualValues(t, 32, sc.Int)
 
-	m := sc.StringMap
+		assert.EqualValues(t, 32.22, sc.Float)
 
-	assert.NotNil(t, m)
+		m := sc.StringMap
 
-	assert.EqualValues(t, 3, len(sc.FloatArray))
+		assert.NotNil(t, m)
+
+		assert.EqualValues(t, 3, len(sc.FloatArray))
+	}
 
 }
 
 func TestPopulateOutOfBoundsNumbers(t *testing.T) {
 
-	config := loadTestFile(t, "flipped-numbers.json")
+	jsonConf := loadJsonTestFile(t, "flipped-numbers.json")
+	yamlConf := loadYamlTestFile(t, "flipped-numbers.yaml")
 
-	var sc SimpleConfig
+	for _, node := range []ca.ConfigNode{jsonConf, yamlConf} {
 
-	err := ca.Populate("simpleOne", &sc, config)
+		var sc SimpleConfig
 
-	assert.Nil(t, err)
+		err := ca.Populate("simpleOne", &sc, node)
+
+		assert.Nil(t, err)
+	}
 }
 
 func TestSetField(t *testing.T) {
 
-	config := loadTestFile(t, "simple.json")
+	jsonConf := loadJsonTestFile(t, "simple.json")
+	yamlConf := loadYamlTestFile(t, "simple.yaml")
 
-	var sc SimpleConfig
+	for _, node := range []ca.ConfigNode{jsonConf, yamlConf} {
 
-	if err := ca.SetField("String", "simpleOne.String", &sc, config); err != nil {
-		t.FailNow()
-	}
+		var sc SimpleConfig
 
-	if err := ca.SetField("Bool", "simpleOne.Bool", &sc, config); err != nil {
-		t.FailNow()
-	}
+		if err := ca.SetField("String", "simpleOne.String", &sc, node); err != nil {
+			t.FailNow()
+		}
 
-	if err := ca.SetField("Int", "simpleOne.Int", &sc, config); err != nil {
-		t.FailNow()
-	}
+		if err := ca.SetField("Bool", "simpleOne.Bool", &sc, node); err != nil {
+			t.FailNow()
+		}
 
-	if err := ca.SetField("Float", "simpleOne.Float", &sc, config); err != nil {
-		t.FailNow()
-	}
+		if err := ca.SetField("Int", "simpleOne.Int", &sc, node); err != nil {
+			t.FailNow()
+		}
 
-	if err := ca.SetField("IntArray", "simpleOne.IntArray", &sc, config); err != nil {
-		t.FailNow()
-	}
+		if err := ca.SetField("Float", "simpleOne.Float", &sc, node); err != nil {
+			t.FailNow()
+		}
 
-	if err := ca.SetField("StringMap", "simpleOne.StringMap", &sc, config); err != nil {
-		t.FailNow()
-	}
+		if err := ca.SetField("IntArray", "simpleOne.IntArray", &sc, node); err != nil {
+			t.FailNow()
+		}
 
-	if err := ca.SetField("Unsupported", "simpleOne.IntArray", &sc, config); err == nil {
-		t.FailNow()
-	}
+		if err := ca.SetField("StringMap", "simpleOne.StringMap", &sc, node); err != nil {
+			t.FailNow()
+		}
 
-	if err := ca.SetField("StringMap", "missing.path", &sc, config); err == nil {
-		t.FailNow()
-	}
+		if err := ca.SetField("Unsupported", "simpleOne.IntArray", &sc, node); err == nil {
+			t.FailNow()
+		}
 
-	if err := ca.SetField("StringMap", "simpleOne.Bool", &sc, config); err == nil {
-		t.FailNow()
-	}
+		if err := ca.SetField("StringMap", "missing.path", &sc, node); err == nil {
+			t.FailNow()
+		}
 
-	if err := ca.SetField("StringMap", "simpleOne.BoolA", &sc, config); err == nil {
-		t.FailNow()
-	}
+		if err := ca.SetField("StringMap", "simpleOne.Bool", &sc, node); err == nil {
+			t.FailNow()
+		}
 
-	if _, err := ca.ObjectVal("simpleOne.Bool", config, false); err == nil {
-		t.FailNow()
-	}
+		if err := ca.SetField("StringMap", "simpleOne.BoolA", &sc, node); err == nil {
+			t.FailNow()
+		}
 
-	if err := ca.SetField("StringArrayMap", "simpleOne.StringArrayMap", &sc, config); err != nil {
-		t.FailNow()
-	}
+		if _, err := ca.ObjectVal("simpleOne.Bool", node, false); err == nil {
+			t.FailNow()
+		}
 
-	if err := ca.SetField("StringArrayMap", "simpleOne.EmptyStringArrayMap", &sc, config); err == nil {
-		t.FailNow()
-	}
+		if err := ca.SetField("StringArrayMap", "simpleOne.StringArrayMap", &sc, node); err != nil {
+			t.FailNow()
+		}
 
-	if err := ca.SetField("StringArrayMap", "simpleOne.BoolArrayMap", &sc, config); err == nil {
-		t.FailNow()
+		if err := ca.SetField("StringArrayMap", "simpleOne.EmptyStringArrayMap", &sc, node); err == nil {
+			t.FailNow()
+		}
+
+		if err := ca.SetField("StringArrayMap", "simpleOne.BoolArrayMap", &sc, node); err == nil {
+			t.FailNow()
+		}
 	}
 }
 
 func TestPopulateObjectMissingPath(t *testing.T) {
-	config := loadTestFile(t, "simple.json")
-	var sc SimpleConfig
+	jsonConf := loadJsonTestFile(t, "simple.json")
+	yamlConf := loadYamlTestFile(t, "simple.yaml")
 
-	err := ca.Populate("undefined", &sc, config)
+	for _, node := range []ca.ConfigNode{jsonConf, yamlConf} {
+		var sc SimpleConfig
 
-	if mpe, okay := err.(ca.MissingPathError); okay {
-		assert.NotEmpty(t, mpe.Error())
+		err := ca.Populate("undefined", &sc, node)
+
+		if mpe, okay := err.(ca.MissingPathError); okay {
+			assert.NotEmpty(t, mpe.Error())
+		}
+
+		assert.NotNil(t, err)
 	}
-
-	assert.NotNil(t, err)
-
 }
 
 func TestPopulateInvalid(t *testing.T) {
 
-	config := loadTestFile(t, "simple.json")
-	var sc SimpleConfig
+	jsonConf := loadJsonTestFile(t, "simple.json")
+	yamlConf := loadYamlTestFile(t, "simple.yaml")
 
-	err := ca.Populate("invalidConfig", &sc, config)
-	assert.NoError(t, err)
+	for _, node := range []ca.ConfigNode{jsonConf, yamlConf} {
+		var sc SimpleConfig
+
+		err := ca.Populate("invalidConfig", &sc, node)
+		assert.NoError(t, err)
+	}
 }
 
 func TestPopulateWithUnmarshalableContent(t *testing.T) {
-	config := loadTestFile(t, "simple.json")
-	var sc SimpleConfig
+	jsonConf := loadJsonTestFile(t, "simple.json")
+	yamlConf := loadYamlTestFile(t, "simple.yaml")
 
-	so := config["simpleOne"].(ca.ConfigNode)
-	so["Int"] = make(chan int)
+	for _, node := range []ca.ConfigNode{jsonConf, yamlConf} {
+		var sc SimpleConfig
 
-	err := ca.Populate("simpleOne", &sc, config)
-	assert.Error(t, err)
+		so := node["simpleOne"].(ca.ConfigNode)
+		so["Int"] = make(chan int)
+
+		err := ca.Populate("simpleOne", &sc, node)
+		assert.Error(t, err)
+	}
 }

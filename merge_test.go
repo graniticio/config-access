@@ -31,8 +31,8 @@ func TestTypeDetection(t *testing.T) {
 
 func TestMergingWithArrayReplace(t *testing.T) {
 
-	base := loadTestFile(t, "merge-base.json")
-	additions := loadTestFile(t, "merge-additions.json")
+	base := loadJsonTestFile(t, "merge-base.json")
+	additions := loadJsonTestFile(t, "merge-additions.json")
 
 	result := ca.Merge(base, additions, false)
 
@@ -58,8 +58,8 @@ func TestMergingWithArrayReplace(t *testing.T) {
 
 func TestMergingWithArrayMerge(t *testing.T) {
 
-	base := loadTestFile(t, "merge-base.json")
-	additions := loadTestFile(t, "merge-additions.json")
+	base := loadJsonTestFile(t, "merge-base.json")
+	additions := loadJsonTestFile(t, "merge-additions.json")
 
 	result := ca.Merge(base, additions, true)
 
@@ -77,6 +77,50 @@ func TestMergingWithArrayMerge(t *testing.T) {
 
 }
 
-/*baseString": "def",
-  "baseNumber": 200,
-  "baseBool": false,*/
+func TestMergingWithArrayReplaceYaml(t *testing.T) {
+
+	base := loadYamlTestFile(t, "merge-base.yaml")
+	additions := loadYamlTestFile(t, "merge-additions.yaml")
+
+	result := ca.Merge(base, additions, false)
+
+	assert.NotNil(t, result)
+
+	assert.EqualValues(t, result["baseOnly"].(string), "def")
+	assert.EqualValues(t, result["baseString"].(string), "xyz")
+	assert.EqualValues(t, result["baseNumber"].(int), 200)
+	assert.False(t, result["baseBool"].(bool))
+
+	a, okay := result["baseArray"].([]interface{})
+
+	assert.True(t, okay)
+	assert.Len(t, a, 1)
+
+	o, okay := result["baseObject"].(ca.ConfigNode)
+
+	assert.True(t, okay)
+	assert.EqualValues(t, o["objectField1"].(string), "inBase")
+	assert.EqualValues(t, o["objectField2"].(string), "inAdditions")
+
+}
+
+func TestMergingWithArrayMergeYaml(t *testing.T) {
+
+	base := loadYamlTestFile(t, "merge-base.yaml")
+	additions := loadYamlTestFile(t, "merge-additions.yaml")
+
+	result := ca.Merge(base, additions, true)
+
+	assert.NotNil(t, result)
+
+	a, okay := result["baseArray"].([]interface{})
+
+	assert.True(t, okay)
+	assert.Len(t, a, 4)
+
+	assert.EqualValues(t, a[0].(int), 1)
+	assert.EqualValues(t, a[1].(int), 2)
+	assert.EqualValues(t, a[2].(int), 3)
+	assert.EqualValues(t, a[3].(int), 4)
+
+}

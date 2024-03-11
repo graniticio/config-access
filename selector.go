@@ -183,9 +183,11 @@ func IntVal(path string, node ConfigNode) (int, error) {
 		return 0, errors.New("No such path " + path)
 	} else if f, found := v.(float64); found {
 		return int(f), nil
+	} else if i, found := v.(int); found {
+		return i, nil
 	}
 
-	return 0, fmt.Errorf("alue at %s is %q and cannot be converted to an int", path, v)
+	return 0, fmt.Errorf("Value at %s is %q and cannot be converted to an int", path, v)
 
 }
 
