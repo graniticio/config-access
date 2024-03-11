@@ -1,0 +1,10 @@
+{
+  "baseString": "abc",
+  "baseNumber": 100,
+  "baseBool": true,
+  "baseObject": {
+    "objectField1": "inBase"
+  },
+  "baseArray": [1,2,3],
+  "baseOnly": "def"
+}
