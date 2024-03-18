@@ -1,0 +1,28 @@
+String: abc
+Bool: true
+Int: 32
+Float: 32.22
+StringArray:
+  - a
+  - b
+  - c
+IntArray:
+  - 1
+  - 2
+  - 3
+FloatArray:
+  - 1
+  - 2
+  - 3
+StringMap:
+  key1: val2
+StringArrayMap:
+  key1:
+    - a
+    - b
+EmptyStringArrayMap:
+  key1: []
+BoolArrayMap:
+  key1:
+    - true
+    - false

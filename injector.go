@@ -51,7 +51,19 @@ func SetField(fieldName string, path string, target interface{}, config ConfigNo
 	return nil
 }
 
-// Populate sets the fields on the supplied target object using the JSON data
+// PopulateFromRoot sets the fields on the supplied target object using the whole supplied config document.
+// This is achieved using Go's json.Marshal to convert the data
+// back into text JSON and then json.Unmarshal to unmarshal back into the target.
+func PopulateFromRoot(target interface{}, config ConfigNode) error {
+
+	wrapper := make(ConfigNode)
+
+	wrapper["root"] = config
+
+	return Populate("root", target, wrapper)
+}
+
+// Populate sets the fields on the supplied target object using the data
 // at the supplied path. This is achieved using Go's json.Marshal to convert the data
 // back into text JSON and then json.Unmarshal to unmarshal back into the target.
 func Populate(path string, target interface{}, config ConfigNode) error {

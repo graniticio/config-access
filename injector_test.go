@@ -19,6 +19,33 @@ type SimpleConfig struct {
 	StringArrayMap map[string][]string
 }
 
+func TestPopulationWithEntireDocument(t *testing.T) {
+	jsonConf := loadJsonTestFile(t, "root.json")
+	yamlConf := loadYamlTestFile(t, "root.yaml")
+
+	for _, node := range []ca.ConfigNode{jsonConf, yamlConf} {
+		var sc SimpleConfig
+
+		err := ca.PopulateFromRoot(&sc, node)
+
+		assert.NoError(t, err)
+
+		assert.EqualValues(t, "abc", sc.String)
+
+		assert.True(t, sc.Bool)
+
+		assert.EqualValues(t, 32, sc.Int)
+
+		assert.EqualValues(t, 32.22, sc.Float)
+
+		m := sc.StringMap
+
+		assert.NotNil(t, m)
+
+		assert.EqualValues(t, 3, len(sc.FloatArray))
+	}
+}
+
 func TestPopulateObject(t *testing.T) {
 
 	jsonConf := loadJsonTestFile(t, "simple.json")
