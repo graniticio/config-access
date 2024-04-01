@@ -293,3 +293,128 @@ func parseJson(source []byte, target interface{}) error {
 func parseYaml(source []byte, target interface{}) error {
 	return yaml.Unmarshal(source, target)
 }
+
+func TestSimpleConfigQuietAccess(t *testing.T) {
+
+	var invoked bool
+
+	errorFunc := func(path string, err error) {
+		invoked = true
+	}
+
+	jsonConf := loadJsonTestFile(t, "simple.json")
+	yamlConf := loadYamlTestFile(t, "simple.yaml")
+
+	for _, node := range []ca.ConfigNode{jsonConf, yamlConf} {
+
+		base := ca.NewDefaultSelector(node, true, true)
+		cs := ca.NewDeferredErrorQuietSelector(base, errorFunc)
+
+		assert.True(t, cs.PathExists("simpleOne.String"))
+		assert.False(t, invoked)
+		invoked = false
+
+		s := cs.StringVal("simpleOne.String")
+
+		assert.EqualValues(t, "abc", s)
+		assert.False(t, invoked)
+		invoked = false
+
+		s = cs.StringVal("missing.String")
+
+		assert.EqualValues(t, "", s)
+		assert.True(t, invoked)
+		invoked = false
+
+		b := cs.BoolVal("simpleOne.Bool")
+		assert.True(t, b)
+		assert.False(t, invoked)
+		invoked = false
+
+		b = cs.BoolVal("missing.Bool")
+		assert.False(t, b)
+		assert.True(t, invoked)
+		invoked = false
+
+		i := cs.IntVal("simpleOne.Int")
+		assert.EqualValues(t, 32, i)
+		assert.False(t, invoked)
+		invoked = false
+
+		i = cs.IntVal("missing.Int")
+		assert.EqualValues(t, 0, i)
+		assert.True(t, invoked)
+		invoked = false
+
+		f := cs.Float64Val("simpleOne.Float")
+		assert.False(t, invoked)
+		assert.EqualValues(t, 32.22, f)
+		invoked = false
+
+		f = cs.Float64Val("missing.Float")
+		assert.True(t, invoked)
+		assert.EqualValues(t, 0, f)
+		invoked = false
+
+		sa := cs.Array("simpleOne.StringArray")
+		assert.False(t, invoked)
+		assert.EqualValues(t, sa[1].(string), "b")
+		invoked = false
+
+		sa = cs.Array("missing.StringArray")
+		assert.True(t, invoked)
+		assert.Nil(t, sa)
+		invoked = false
+
+		ov := cs.ObjectVal("simpleOne.StringMap")
+		assert.False(t, invoked)
+		assert.NotNil(t, ov)
+		invoked = false
+
+		ov = cs.ObjectVal("missing.StringMap")
+		assert.True(t, invoked)
+		assert.Nil(t, ov)
+		invoked = false
+
+		is := cs.Value("simpleOne.String")
+
+		assert.NotNil(t, is)
+		assert.False(t, invoked)
+		invoked = false
+
+		is = cs.Value("missing.String")
+
+		assert.Nil(t, is)
+		assert.False(t, invoked)
+		invoked = false
+
+	}
+}
+
+func TestGraniticSelectorErrorBehaviour(t *testing.T) {
+
+	jsonConf := loadJsonTestFile(t, "simple.json")
+	yamlConf := loadYamlTestFile(t, "simple.yaml")
+
+	for _, node := range []ca.ConfigNode{jsonConf, yamlConf} {
+
+		cs := ca.NewGraniticSelector(node)
+
+		o, err := cs.ObjectVal("missing.path")
+		assert.Nil(t, o)
+		assert.NoError(t, err)
+
+		a, err := cs.Array("missing.path")
+		assert.Nil(t, a)
+		assert.NoError(t, err)
+
+	}
+}
+
+func TestNodeBehaviour(t *testing.T) {
+	i, err := ca.IntVal("some.path", nil)
+
+	assert.Equal(t, 0, i)
+	assert.Error(t, err)
+
+}
