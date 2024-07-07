@@ -170,3 +170,53 @@ func TestQuietAccessArrays(t *testing.T) {
 		invoked = false
 	}
 }
+
+func TestQuietDefaultValueOnMissing(t *testing.T) {
+	pv := map[string]interface{}{}
+
+	errorFunc := func(path string, err error) {
+
+	}
+
+	sel := ca.QuietSelectorFromPathValues(pv, errorFunc)
+
+	s := sel.Value("x.y.x", ca.Opts{OnMissing: "default"})
+	assert.EqualValues(t, "default", s)
+
+	dov := make(ca.ConfigNode)
+	ov := sel.ObjectVal("x.y.z", ca.Opts{OnMissing: dov})
+	assert.EqualValues(t, dov, ov)
+
+	sdv := "default"
+	sv := sel.StringVal("x.y.z", ca.Opts{OnMissing: sdv})
+	assert.EqualValues(t, sdv, sv)
+
+	idv := -2
+	iv := sel.IntVal("x.y.z", ca.Opts{OnMissing: -2})
+	assert.EqualValues(t, idv, iv)
+
+	fdv := -3.2
+	fv := sel.Float64Val("x.y.z", ca.Opts{OnMissing: -3.2})
+	assert.EqualValues(t, fdv, fv)
+
+	bdv := true
+	bv := sel.BoolVal("x.y.z", ca.Opts{OnMissing: true})
+	assert.EqualValues(t, bdv, bv)
+
+	ifadv := []interface{}{true, 1}
+	ifav := sel.Array("x.y.z", ca.Opts{OnMissing: ifadv})
+	assert.EqualValues(t, ifav, ifadv)
+
+	iadv := []int{5, 6}
+	iav := sel.IntArray("x.y.z", ca.Opts{OnMissing: iadv})
+	assert.EqualValues(t, iav, iadv)
+
+	fadv := []float64{5.2, 6.3}
+	fav := sel.Float64Array("x.y.z", ca.Opts{OnMissing: fadv})
+	assert.EqualValues(t, fav, fadv)
+
+	sadv := []string{"a", "d"}
+	sav := sel.StringArray("x.y.z", ca.Opts{OnMissing: sadv})
+	assert.EqualValues(t, sav, sadv)
+
+}

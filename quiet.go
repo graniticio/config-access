@@ -3,16 +3,16 @@ package config_access
 // QuietSelector does not return errors for missing paths or incompatible types
 type QuietSelector interface {
 	PathExists(path string) bool
-	Value(path string) interface{}
-	ObjectVal(path string) ConfigNode
-	StringVal(path string) string
-	StringArray(path string) []string
-	IntArray(path string) []int
-	Float64Array(path string) []float64
-	IntVal(path string) int
-	Float64Val(path string) float64
-	Array(path string) []interface{}
-	BoolVal(path string) bool
+	Value(path string, o ...Opts) interface{}
+	ObjectVal(path string, o ...Opts) ConfigNode
+	StringVal(path string, o ...Opts) string
+	StringArray(path string, o ...Opts) []string
+	IntArray(path string, o ...Opts) []int
+	Float64Array(path string, o ...Opts) []float64
+	IntVal(path string, o ...Opts) int
+	Float64Val(path string, o ...Opts) float64
+	Array(path string, o ...Opts) []interface{}
+	BoolVal(path string, o ...Opts) bool
 }
 
 func NewDeferredErrorQuietSelector(conf Selector, errorFunc func(path string, err error)) QuietSelector {
@@ -36,15 +36,15 @@ func (dqs *DeferredErrorQuietSelector) PathExists(path string) bool {
 
 }
 
-func (dqs *DeferredErrorQuietSelector) Value(path string) interface{} {
+func (dqs *DeferredErrorQuietSelector) Value(path string, o ...Opts) interface{} {
 
-	return dqs.conf.Value(path)
+	return dqs.conf.Value(path, o...)
 
 }
 
-func (dqs *DeferredErrorQuietSelector) ObjectVal(path string) ConfigNode {
+func (dqs *DeferredErrorQuietSelector) ObjectVal(path string, o ...Opts) ConfigNode {
 
-	if v, err := dqs.conf.ObjectVal(path); err != nil {
+	if v, err := dqs.conf.ObjectVal(path, o...); err != nil {
 		dqs.handleError(path, err)
 		return nil
 	} else {
@@ -53,9 +53,9 @@ func (dqs *DeferredErrorQuietSelector) ObjectVal(path string) ConfigNode {
 
 }
 
-func (dqs *DeferredErrorQuietSelector) StringVal(path string) string {
+func (dqs *DeferredErrorQuietSelector) StringVal(path string, o ...Opts) string {
 
-	if v, err := dqs.conf.StringVal(path); err != nil {
+	if v, err := dqs.conf.StringVal(path, o...); err != nil {
 		dqs.handleError(path, err)
 		return ""
 	} else {
@@ -64,9 +64,9 @@ func (dqs *DeferredErrorQuietSelector) StringVal(path string) string {
 
 }
 
-func (dqs *DeferredErrorQuietSelector) IntVal(path string) int {
+func (dqs *DeferredErrorQuietSelector) IntVal(path string, o ...Opts) int {
 
-	if v, err := dqs.conf.IntVal(path); err != nil {
+	if v, err := dqs.conf.IntVal(path, o...); err != nil {
 		dqs.handleError(path, err)
 		return 0
 	} else {
@@ -75,9 +75,9 @@ func (dqs *DeferredErrorQuietSelector) IntVal(path string) int {
 
 }
 
-func (dqs *DeferredErrorQuietSelector) Float64Val(path string) float64 {
+func (dqs *DeferredErrorQuietSelector) Float64Val(path string, o ...Opts) float64 {
 
-	if v, err := dqs.conf.Float64Val(path); err != nil {
+	if v, err := dqs.conf.Float64Val(path, o...); err != nil {
 		dqs.handleError(path, err)
 		return 0
 	} else {
@@ -86,9 +86,9 @@ func (dqs *DeferredErrorQuietSelector) Float64Val(path string) float64 {
 
 }
 
-func (dqs *DeferredErrorQuietSelector) Array(path string) []interface{} {
+func (dqs *DeferredErrorQuietSelector) Array(path string, o ...Opts) []interface{} {
 
-	if v, err := dqs.conf.Array(path); err != nil {
+	if v, err := dqs.conf.Array(path, o...); err != nil {
 		dqs.handleError(path, err)
 		return nil
 	} else {
@@ -97,8 +97,8 @@ func (dqs *DeferredErrorQuietSelector) Array(path string) []interface{} {
 
 }
 
-func (dqs *DeferredErrorQuietSelector) StringArray(path string) []string {
-	if v, err := dqs.conf.StringArray(path); err != nil {
+func (dqs *DeferredErrorQuietSelector) StringArray(path string, o ...Opts) []string {
+	if v, err := dqs.conf.StringArray(path, o...); err != nil {
 		dqs.handleError(path, err)
 		return nil
 	} else {
@@ -106,8 +106,8 @@ func (dqs *DeferredErrorQuietSelector) StringArray(path string) []string {
 	}
 }
 
-func (dqs *DeferredErrorQuietSelector) IntArray(path string) []int {
-	if v, err := dqs.conf.IntArray(path); err != nil {
+func (dqs *DeferredErrorQuietSelector) IntArray(path string, o ...Opts) []int {
+	if v, err := dqs.conf.IntArray(path, o...); err != nil {
 		dqs.handleError(path, err)
 		return nil
 	} else {
@@ -115,8 +115,8 @@ func (dqs *DeferredErrorQuietSelector) IntArray(path string) []int {
 	}
 }
 
-func (dqs *DeferredErrorQuietSelector) Float64Array(path string) []float64 {
-	if v, err := dqs.conf.Float64Array(path); err != nil {
+func (dqs *DeferredErrorQuietSelector) Float64Array(path string, o ...Opts) []float64 {
+	if v, err := dqs.conf.Float64Array(path, o...); err != nil {
 		dqs.handleError(path, err)
 		return nil
 	} else {
@@ -124,9 +124,9 @@ func (dqs *DeferredErrorQuietSelector) Float64Array(path string) []float64 {
 	}
 }
 
-func (dqs *DeferredErrorQuietSelector) BoolVal(path string) bool {
+func (dqs *DeferredErrorQuietSelector) BoolVal(path string, o ...Opts) bool {
 
-	if v, err := dqs.conf.BoolVal(path); err != nil {
+	if v, err := dqs.conf.BoolVal(path, o...); err != nil {
 		dqs.handleError(path, err)
 		return false
 	} else {
