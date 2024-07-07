@@ -134,3 +134,8 @@ func (dqs *DeferredErrorQuietSelector) BoolVal(path string) bool {
 	}
 
 }
+
+// QuietSelectorFromPathValues creates a new QuietSelector populated with a map of complete paths (e.g. "my.config.path": "value")
+func QuietSelectorFromPathValues(pv map[string]interface{}, errorFunc func(path string, err error)) QuietSelector {
+	return NewDeferredErrorQuietSelector(SelectorFromPathValues(pv), errorFunc)
+}

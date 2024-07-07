@@ -93,6 +93,26 @@ func TestSimpleConfigQuietAccess(t *testing.T) {
 	}
 }
 
+func TestQuietSelectorFromPathValues(t *testing.T) {
+
+	var invoked bool
+
+	errorFunc := func(path string, err error) {
+		invoked = true
+	}
+
+	pv := map[string]interface{}{
+		"a.b.c": 1,
+	}
+
+	qs := ca.QuietSelectorFromPathValues(pv, errorFunc)
+
+	i := qs.IntVal("a.b.c")
+	assert.EqualValues(t, 1, i)
+	assert.False(t, invoked)
+
+}
+
 func TestQuietAccessArrays(t *testing.T) {
 
 	var invoked bool

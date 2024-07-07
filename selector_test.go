@@ -284,3 +284,31 @@ func TestNodeBehaviour(t *testing.T) {
 	assert.Error(t, err)
 
 }
+
+func TestSelectorFromPathValues(t *testing.T) {
+
+	pv := map[string]interface{}{
+		"a.b.c.d": "e",
+		"x.y.z":   10,
+		"   ":     "ignore",
+		"a.b.c.f": "S",
+	}
+
+	s := ca.SelectorFromPathValues(pv)
+	assert.NotNil(t, s)
+
+	s1, err := s.StringVal("a.b.c.d")
+	assert.NoError(t, err)
+	assert.EqualValues(t, "e", s1)
+
+	i, err := s.IntVal("x.y.z")
+	assert.NoError(t, err)
+	assert.EqualValues(t, 10, i)
+
+	s2, err := s.StringVal("a.b.c.f")
+	assert.NoError(t, err)
+	assert.EqualValues(t, "S", s2)
+
+	_, err = s.StringVal("   ")
+	assert.Error(t, err)
+}

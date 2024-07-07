@@ -3,6 +3,8 @@
 
 package config_access
 
+import "strings"
+
 const PathSeparator = "."
 
 type ConfigNode = map[string]interface{}
@@ -31,6 +33,52 @@ type Selector interface {
 	BoolVal(path string) (bool, error)
 	Flush()
 	Config() ConfigNode
+}
+
+// Opts defines optional behaviour for accessing and interpreting config values
+type Opts struct {
+}
+
+// SelectorFromPathValues creates a Selector from a map of config paths (e.g. my.config.path) and their
+// associated values. Empty path values are ignored.
+func SelectorFromPathValues(pathValues map[string]interface{}) Selector {
+
+	store := make(map[string]interface{})
+
+	for k, v := range pathValues {
+
+		if strings.TrimSpace(k) == "" {
+			continue
+		}
+
+		addValue(strings.Split(k, "."), v, store)
+
+	}
+
+	return NewDefaultSelector(store, true, true)
+
+}
+
+func addValue(path []string, value any, store map[string]interface{}) {
+
+	first := path[0]
+
+	if len(path) == 1 {
+		store[first] = value
+	} else {
+
+		storeForFirst := store[first]
+
+		if storeForFirst == nil {
+			newFirst := make(map[string]interface{})
+			store[first] = newFirst
+			addValue(path[1:], value, newFirst)
+		} else {
+			addValue(path[1:], value, storeForFirst.(map[string]interface{}))
+		}
+
+	}
+
 }
 
 func NewDefaultSelector(config ConfigNode, errorOnMissingObjectPath, errorOnMissingArrayPath bool) Selector {
