@@ -34,7 +34,7 @@ various Go builtin types through an interface called a ```Selector```. Individua
 a dot delimited 'path' syntax.
 
 ```go
-  cs := new(config_access.DefaultSelector)
+  selector := config_access.NewDefaultSelector(config, true, true)
 	
   if cs.PathExists("my.string") {
     s := cs.StringVal("my.string")		
@@ -43,6 +43,23 @@ a dot delimited 'path' syntax.
 
 Methods exist to try and interpret configuration values as ```string```, ```int```, ```float64```, ```bool```, slices
 ```[]interface{}``` and objects ```map[string]interface{}```.
+
+## 'Quiet' access
+
+If you do not want to handle errors whenever you attempt to access a configuration value, you can use a `QuietSelector`
+that instead of returning an error when encountering a problem or missing value, executes a function that you provide.
+
+This can be used to implement 'fail fast' behaviour by exiting the application on an error or logging the problem. If
+the function you provide does not exit the application, configuration value methods (e.g. `StringVal()`) will return 
+the zero value relevant to the type you asked for (`nil`, `""`, 0 etc")
+
+```go
+  quiet := config_access.NewDeferredErrorQuietSelector(config,
+	  func(path string, err error){
+		  fmt.printf("Error while trying to load config at %s: %s", path, err.Error())
+      })
+```
+
 
 ## Layering and merging
 
