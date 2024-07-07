@@ -21,22 +21,24 @@ func (mp MissingPathError) Error() string {
 
 type Selector interface {
 	PathExists(path string) bool
-	Value(path string) interface{}
-	ObjectVal(path string) (ConfigNode, error)
-	StringVal(path string) (string, error)
-	IntVal(path string) (int, error)
-	Float64Val(path string) (float64, error)
-	Array(path string) ([]interface{}, error)
-	StringArray(path string) ([]string, error)
-	IntArray(path string) ([]int, error)
-	Float64Array(path string) ([]float64, error)
-	BoolVal(path string) (bool, error)
+	Value(path string, o ...Opts) interface{}
+	ObjectVal(path string, o ...Opts) (ConfigNode, error)
+	StringVal(path string, o ...Opts) (string, error)
+	IntVal(path string, o ...Opts) (int, error)
+	Float64Val(path string, o ...Opts) (float64, error)
+	Array(path string, o ...Opts) ([]interface{}, error)
+	StringArray(path string, o ...Opts) ([]string, error)
+	IntArray(path string, o ...Opts) ([]int, error)
+	Float64Array(path string, o ...Opts) ([]float64, error)
+	BoolVal(path string, o ...Opts) (bool, error)
 	Flush()
 	Config() ConfigNode
 }
 
 // Opts defines optional behaviour for accessing and interpreting config values
 type Opts struct {
+	// If this value is set, it will be returned instead of an error if there is no value at the requested path
+	OnMissing any
 }
 
 // SelectorFromPathValues creates a Selector from a map of config paths (e.g. my.config.path) and their
@@ -111,46 +113,122 @@ func (dfe *DefaultSelector) PathExists(path string) bool {
 	return PathExists(path, dfe.config)
 }
 
-func (dfe *DefaultSelector) Value(path string) interface{} {
-	return Value(path, dfe.config)
+func (dfe *DefaultSelector) Value(path string, o ...Opts) interface{} {
+	if v := Value(path, dfe.config); v != nil {
+		return v
+	} else {
+		opts := options(o)
+		return opts.OnMissing
+	}
 }
 
-func (dfe *DefaultSelector) ObjectVal(path string) (ConfigNode, error) {
+func (dfe *DefaultSelector) ObjectVal(path string, o ...Opts) (ConfigNode, error) {
+
+	opts := options(o)
+
+	if opts.OnMissing != nil && !PathExists(path, dfe.config) {
+		return opts.OnMissing.(ConfigNode), nil
+	}
+
 	return ObjectVal(path, dfe.config, dfe.errorOnMissingObjectPath)
 }
 
-func (dfe *DefaultSelector) StringVal(path string) (string, error) {
+func (dfe *DefaultSelector) StringVal(path string, o ...Opts) (string, error) {
+
+	opts := options(o)
+
+	if opts.OnMissing != nil && !PathExists(path, dfe.config) {
+		return opts.OnMissing.(string), nil
+	}
+
 	return StringVal(path, dfe.config)
 }
 
-func (dfe *DefaultSelector) IntVal(path string) (int, error) {
+func (dfe *DefaultSelector) IntVal(path string, o ...Opts) (int, error) {
+
+	opts := options(o)
+
+	if opts.OnMissing != nil && !PathExists(path, dfe.config) {
+		return opts.OnMissing.(int), nil
+	}
+
 	return IntVal(path, dfe.config)
 }
 
-func (dfe *DefaultSelector) Float64Val(path string) (float64, error) {
+func (dfe *DefaultSelector) Float64Val(path string, o ...Opts) (float64, error) {
+
+	opts := options(o)
+
+	if opts.OnMissing != nil && !PathExists(path, dfe.config) {
+		return opts.OnMissing.(float64), nil
+	}
+
 	return Float64Val(path, dfe.config)
 }
 
-func (dfe *DefaultSelector) Array(path string) ([]interface{}, error) {
+func (dfe *DefaultSelector) Array(path string, o ...Opts) ([]interface{}, error) {
+
+	opts := options(o)
+
+	if opts.OnMissing != nil && !PathExists(path, dfe.config) {
+		return opts.OnMissing.([]interface{}), nil
+	}
+
 	return Array(path, dfe.config, dfe.errorOnMissingArrayPath)
 }
 
-func (dfe *DefaultSelector) StringArray(path string) ([]string, error) {
+func (dfe *DefaultSelector) StringArray(path string, o ...Opts) ([]string, error) {
+
+	opts := options(o)
+
+	if opts.OnMissing != nil && !PathExists(path, dfe.config) {
+		return opts.OnMissing.([]string), nil
+	}
+
 	return StringArray(path, dfe.config)
 }
 
-func (dfe *DefaultSelector) IntArray(path string) ([]int, error) {
+func (dfe *DefaultSelector) IntArray(path string, o ...Opts) ([]int, error) {
+
+	opts := options(o)
+
+	if opts.OnMissing != nil && !PathExists(path, dfe.config) {
+		return opts.OnMissing.([]int), nil
+	}
+
 	return IntArray(path, dfe.config)
 }
 
-func (dfe *DefaultSelector) Float64Array(path string) ([]float64, error) {
+func (dfe *DefaultSelector) Float64Array(path string, o ...Opts) ([]float64, error) {
+
+	opts := options(o)
+
+	if opts.OnMissing != nil && !PathExists(path, dfe.config) {
+		return opts.OnMissing.([]float64), nil
+	}
+
 	return Float64Array(path, dfe.config)
 }
 
-func (dfe *DefaultSelector) BoolVal(path string) (bool, error) {
+func (dfe *DefaultSelector) BoolVal(path string, o ...Opts) (bool, error) {
+
+	opts := options(o)
+
+	if opts.OnMissing != nil && !PathExists(path, dfe.config) {
+		return opts.OnMissing.(bool), nil
+	}
+
 	return BoolVal(path, dfe.config)
 }
 
 func (dfe *DefaultSelector) Config() ConfigNode {
 	return dfe.config
+}
+
+func options(o []Opts) Opts {
+	if len(o) == 0 {
+		return Opts{}
+	} else {
+		return o[0]
+	}
 }

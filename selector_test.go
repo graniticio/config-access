@@ -285,6 +285,60 @@ func TestNodeBehaviour(t *testing.T) {
 
 }
 
+func TestDefaultValueOnMissing(t *testing.T) {
+	pv := map[string]interface{}{}
+	sel := ca.SelectorFromPathValues(pv)
+
+	s := sel.Value("x.y.x", ca.Opts{OnMissing: "default"})
+	assert.EqualValues(t, "default", s)
+
+	dov := make(ca.ConfigNode)
+	ov, err := sel.ObjectVal("x.y.z", ca.Opts{OnMissing: dov})
+	assert.NoError(t, err)
+	assert.EqualValues(t, dov, ov)
+
+	sdv := "default"
+	sv, err := sel.StringVal("x.y.z", ca.Opts{OnMissing: sdv})
+	assert.NoError(t, err)
+	assert.EqualValues(t, sdv, sv)
+
+	idv := -2
+	iv, err := sel.IntVal("x.y.z", ca.Opts{OnMissing: -2})
+	assert.NoError(t, err)
+	assert.EqualValues(t, idv, iv)
+
+	fdv := -3.2
+	fv, err := sel.Float64Val("x.y.z", ca.Opts{OnMissing: -3.2})
+	assert.NoError(t, err)
+	assert.EqualValues(t, fdv, fv)
+
+	bdv := true
+	bv, err := sel.BoolVal("x.y.z", ca.Opts{OnMissing: true})
+	assert.NoError(t, err)
+	assert.EqualValues(t, bdv, bv)
+
+	ifadv := []interface{}{true, 1}
+	ifav, err := sel.Array("x.y.z", ca.Opts{OnMissing: ifadv})
+	assert.NoError(t, err)
+	assert.EqualValues(t, ifav, ifadv)
+
+	iadv := []int{5, 6}
+	iav, err := sel.IntArray("x.y.z", ca.Opts{OnMissing: iadv})
+	assert.NoError(t, err)
+	assert.EqualValues(t, iav, iadv)
+
+	fadv := []float64{5.2, 6.3}
+	fav, err := sel.Float64Array("x.y.z", ca.Opts{OnMissing: fadv})
+	assert.NoError(t, err)
+	assert.EqualValues(t, fav, fadv)
+
+	sadv := []string{"a", "d"}
+	sav, err := sel.StringArray("x.y.z", ca.Opts{OnMissing: sadv})
+	assert.NoError(t, err)
+	assert.EqualValues(t, sav, sadv)
+
+}
+
 func TestSelectorFromPathValues(t *testing.T) {
 
 	pv := map[string]interface{}{
