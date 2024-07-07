@@ -27,6 +27,7 @@ type Selector interface {
 	Array(path string) ([]interface{}, error)
 	StringArray(path string) ([]string, error)
 	IntArray(path string) ([]int, error)
+	Float64Array(path string) ([]float64, error)
 	BoolVal(path string) (bool, error)
 	Flush()
 	Config() ConfigNode
@@ -92,6 +93,10 @@ func (dfe *DefaultSelector) StringArray(path string) ([]string, error) {
 
 func (dfe *DefaultSelector) IntArray(path string) ([]int, error) {
 	return IntArray(path, dfe.config)
+}
+
+func (dfe *DefaultSelector) Float64Array(path string) ([]float64, error) {
+	return Float64Array(path, dfe.config)
 }
 
 func (dfe *DefaultSelector) BoolVal(path string) (bool, error) {

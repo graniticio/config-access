@@ -168,9 +168,9 @@ func StringArray(path string, node ConfigNode) ([]string, error) {
 	return sval, nil
 }
 
-// IntArray returns an array of int64s from the value at the supplied path.
+// IntArray returns an array of int from the value at the supplied path.
 //
-// An error is returned if there is no value at the supplied path or if the value cannot be interpreted as []string
+// An error is returned if there is no value at the supplied path or if the value cannot be interpreted as []int
 func IntArray(path string, node ConfigNode) ([]int, error) {
 
 	ival, err := Array(path, node, true)
@@ -189,6 +189,33 @@ func IntArray(path string, node ConfigNode) ([]int, error) {
 			typedVal[i] = int(t)
 		default:
 			return nil, fmt.Errorf("value at %s[%d] is %v of type %T and cannot be converted to an int", path, i, v, t)
+		}
+	}
+
+	return typedVal, nil
+}
+
+// Float64Array returns an array of float64s from the value at the supplied path.
+//
+// An error is returned if there is no value at the supplied path or if the value cannot be interpreted as []float64
+func Float64Array(path string, node ConfigNode) ([]float64, error) {
+
+	ival, err := Array(path, node, true)
+
+	if err != nil {
+		return nil, err
+	}
+
+	typedVal := make([]float64, len(ival))
+
+	for i, v := range ival {
+		switch t := v.(type) {
+		case int:
+			typedVal[i] = float64(t)
+		case float64:
+			typedVal[i] = t
+		default:
+			return nil, fmt.Errorf("value at %s[%d] is %v of type %T and cannot be converted to a float64", path, i, v, t)
 		}
 	}
 

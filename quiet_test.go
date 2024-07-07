@@ -138,5 +138,15 @@ func TestQuietAccessArrays(t *testing.T) {
 		assert.True(t, invoked)
 		assert.Nil(t, ia)
 		invoked = false
+
+		fa := cs.Float64Array("simpleOne.FloatArray")
+		assert.False(t, invoked)
+		assert.EqualValues(t, fa[1], 2.0)
+		invoked = false
+
+		fa = cs.Float64Array("missing.FloatArray")
+		assert.True(t, invoked)
+		assert.Nil(t, ia)
+		invoked = false
 	}
 }
