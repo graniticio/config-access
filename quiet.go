@@ -7,6 +7,7 @@ type QuietSelector interface {
 	ObjectVal(path string) ConfigNode
 	StringVal(path string) string
 	StringArray(path string) []string
+	IntArray(path string) []int
 	IntVal(path string) int
 	Float64Val(path string) float64
 	Array(path string) []interface{}
@@ -97,6 +98,15 @@ func (dqs *DeferredErrorQuietSelector) Array(path string) []interface{} {
 
 func (dqs *DeferredErrorQuietSelector) StringArray(path string) []string {
 	if v, err := dqs.conf.StringArray(path); err != nil {
+		dqs.handleError(path, err)
+		return nil
+	} else {
+		return v
+	}
+}
+
+func (dqs *DeferredErrorQuietSelector) IntArray(path string) []int {
+	if v, err := dqs.conf.IntArray(path); err != nil {
 		dqs.handleError(path, err)
 		return nil
 	} else {

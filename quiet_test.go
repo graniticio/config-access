@@ -68,26 +68,6 @@ func TestSimpleConfigQuietAccess(t *testing.T) {
 		assert.EqualValues(t, 0, f)
 		invoked = false
 
-		sa := cs.Array("simpleOne.StringArray")
-		assert.False(t, invoked)
-		assert.EqualValues(t, sa[1].(string), "b")
-		invoked = false
-
-		sa = cs.Array("missing.StringArray")
-		assert.True(t, invoked)
-		assert.Nil(t, sa)
-		invoked = false
-
-		ssa := cs.StringArray("simpleOne.StringArray")
-		assert.False(t, invoked)
-		assert.EqualValues(t, ssa[1], "b")
-		invoked = false
-
-		ssa = cs.StringArray("missing.StringArray")
-		assert.True(t, invoked)
-		assert.Nil(t, ssa)
-		invoked = false
-
 		ov := cs.ObjectVal("simpleOne.StringMap")
 		assert.False(t, invoked)
 		assert.NotNil(t, ov)
@@ -110,5 +90,53 @@ func TestSimpleConfigQuietAccess(t *testing.T) {
 		assert.False(t, invoked)
 		invoked = false
 
+	}
+}
+
+func TestQuietAccessArrays(t *testing.T) {
+
+	var invoked bool
+
+	errorFunc := func(path string, err error) {
+		invoked = true
+	}
+
+	jsonConf := loadJsonTestFile(t, "simple.json")
+	yamlConf := loadYamlTestFile(t, "simple.yaml")
+
+	for _, node := range []ca.ConfigNode{jsonConf, yamlConf} {
+
+		base := ca.NewDefaultSelector(node, true, true)
+		cs := ca.NewDeferredErrorQuietSelector(base, errorFunc)
+
+		sa := cs.Array("simpleOne.StringArray")
+		assert.False(t, invoked)
+		assert.EqualValues(t, sa[1].(string), "b")
+		invoked = false
+
+		sa = cs.Array("missing.StringArray")
+		assert.True(t, invoked)
+		assert.Nil(t, sa)
+		invoked = false
+
+		ssa := cs.StringArray("simpleOne.StringArray")
+		assert.False(t, invoked)
+		assert.EqualValues(t, ssa[1], "b")
+		invoked = false
+
+		ssa = cs.StringArray("missing.StringArray")
+		assert.True(t, invoked)
+		assert.Nil(t, ssa)
+		invoked = false
+
+		ia := cs.IntArray("simpleOne.IntArray")
+		assert.False(t, invoked)
+		assert.EqualValues(t, ia[1], 2)
+		invoked = false
+
+		ia = cs.IntArray("missing.IntArray")
+		assert.True(t, invoked)
+		assert.Nil(t, ia)
+		invoked = false
 	}
 }

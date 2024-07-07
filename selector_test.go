@@ -74,6 +74,24 @@ func TestStringArray(t *testing.T) {
 	}
 }
 
+func TestIntArray(t *testing.T) {
+	jsonConf := loadJsonTestFile(t, "simple.json")
+	yamlConf := loadYamlTestFile(t, "simple.yaml")
+
+	for _, node := range []ca.ConfigNode{jsonConf, yamlConf} {
+		ia, err := ca.IntArray("simpleOne.IntArray", node)
+
+		assert.NoError(t, err)
+		assert.EqualValues(t, []int{1, 2, 3}, ia)
+
+		ia, err = ca.IntArray("simpleOne.StringArray", node)
+		assert.Error(t, err)
+
+		ia, err = ca.IntArray("missing.IntArray", node)
+		assert.Error(t, err)
+	}
+}
+
 func TestSimpleConfigViaSelector(t *testing.T) {
 
 	jsonConf := loadJsonTestFile(t, "simple.json")
@@ -103,6 +121,10 @@ func TestSimpleConfigViaSelector(t *testing.T) {
 		sa, err := cs.Array("simpleOne.StringArray")
 		assert.NoError(t, err)
 		assert.EqualValues(t, sa[1].(string), "b")
+
+		ia, err := cs.IntArray("simpleOne.IntArray")
+		assert.NoError(t, err)
+		assert.EqualValues(t, ia[1], 2)
 
 		sa, err = cs.Array("simpleOne.StringArrayX")
 		assert.NoError(t, err)

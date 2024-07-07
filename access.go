@@ -168,6 +168,33 @@ func StringArray(path string, node ConfigNode) ([]string, error) {
 	return sval, nil
 }
 
+// IntArray returns an array of int64s from the value at the supplied path.
+//
+// An error is returned if there is no value at the supplied path or if the value cannot be interpreted as []string
+func IntArray(path string, node ConfigNode) ([]int, error) {
+
+	ival, err := Array(path, node, true)
+
+	if err != nil {
+		return nil, err
+	}
+
+	typedVal := make([]int, len(ival))
+
+	for i, v := range ival {
+		switch t := v.(type) {
+		case int:
+			typedVal[i] = t
+		case float64:
+			typedVal[i] = int(t)
+		default:
+			return nil, fmt.Errorf("value at %s[%d] is %v of type %T and cannot be converted to an int", path, i, v, t)
+		}
+	}
+
+	return typedVal, nil
+}
+
 // BoolVal returns the bool value of the bool at the supplied path. An error will be returned if the value is not a JSON bool.
 // Note this method only supports the JSON definition of bool (true, false) not the Go definition (true, false, 1, 0 etc) or
 // extended YAML definitions.
