@@ -366,3 +366,51 @@ func TestSelectorFromPathValues(t *testing.T) {
 	_, err = s.StringVal("   ")
 	assert.Error(t, err)
 }
+
+func TestStringOrEnv(t *testing.T) {
+
+	ef := func(s string) string {
+		if s == "ENV_NAME" {
+			return "ENV_VALUE"
+		} else {
+			return ""
+		}
+	}
+
+	pv := map[string]interface{}{
+		"value":        "VALUE",
+		"env":          "$ENV_NAME",
+		"missing":      "$MISSING_ENV_NAME",
+		"notOnOs":      "$MCASCASCASASCQWEQWE",
+		"customPrefix": "#ENV_NAME",
+		"notString":    1,
+	}
+
+	s := ca.SelectorFromPathValues(pv)
+	assert.NotNil(t, s)
+
+	ev, err := s.StringOrEnv("notString")
+	assert.Error(t, err)
+	assert.Zero(t, ev)
+
+	ev, err = s.StringOrEnv("notOnOs")
+	assert.Error(t, err)
+	assert.Zero(t, ev)
+
+	ev, err = s.StringOrEnv("value", ca.Opts{EnvAccessFunc: ef})
+	assert.NoError(t, err)
+	assert.Equal(t, "VALUE", ev)
+
+	ev, err = s.StringOrEnv("env", ca.Opts{EnvAccessFunc: ef})
+	assert.NoError(t, err)
+	assert.Equal(t, "ENV_VALUE", ev)
+
+	ev, err = s.StringOrEnv("missing", ca.Opts{EnvAccessFunc: ef})
+	assert.Error(t, err)
+	assert.Zero(t, ev)
+
+	ev, err = s.StringOrEnv("customPrefix", ca.Opts{EnvAccessFunc: ef, EnvVarPrefix: "#"})
+	assert.NoError(t, err)
+	assert.Equal(t, "ENV_VALUE", ev)
+
+}

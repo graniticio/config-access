@@ -13,6 +13,7 @@ type QuietSelector interface {
 	Float64Val(path string, o ...Opts) float64
 	Array(path string, o ...Opts) []interface{}
 	BoolVal(path string, o ...Opts) bool
+	StringOrEnv(path string, o ...Opts) string
 }
 
 func NewDeferredErrorQuietSelector(conf Selector, errorFunc func(path string, err error)) QuietSelector {
@@ -49,6 +50,17 @@ func (dqs *DeferredErrorQuietSelector) ObjectVal(path string, o ...Opts) ConfigN
 		return nil
 	} else {
 		return v
+	}
+
+}
+
+func (dqs *DeferredErrorQuietSelector) StringOrEnv(path string, o ...Opts) string {
+
+	if s, err := dqs.conf.StringOrEnv(path, o...); err != nil {
+		dqs.handleError(path, err)
+		return ""
+	} else {
+		return s
 	}
 
 }

@@ -6,6 +6,40 @@ import (
 	"testing"
 )
 
+func TestQuietEnvOrString(t *testing.T) {
+
+	var invoked bool
+
+	errorFunc := func(path string, err error) {
+		invoked = true
+	}
+
+	ef := func(s string) string {
+		if s == "ENV_NAME" {
+			return "ENV_VALUE"
+		} else {
+			return ""
+		}
+	}
+
+	pv := map[string]interface{}{
+		"env":       "$ENV_NAME",
+		"notString": 1,
+	}
+
+	s := ca.QuietSelectorFromPathValues(pv, errorFunc)
+
+	v := s.StringOrEnv("notString")
+	assert.True(t, invoked)
+	assert.Zero(t, v)
+	invoked = false
+
+	v = s.StringOrEnv("env", ca.Opts{EnvAccessFunc: ef})
+	assert.False(t, invoked)
+	assert.Equal(t, "ENV_VALUE", v)
+
+}
+
 func TestSimpleConfigQuietAccess(t *testing.T) {
 
 	var invoked bool

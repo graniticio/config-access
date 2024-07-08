@@ -3,7 +3,11 @@
 
 package config_access
 
-import "strings"
+import (
+	"fmt"
+	"os"
+	"strings"
+)
 
 const PathSeparator = "."
 
@@ -24,6 +28,13 @@ type Selector interface {
 	Value(path string, o ...Opts) interface{}
 	ObjectVal(path string, o ...Opts) (ConfigNode, error)
 	StringVal(path string, o ...Opts) (string, error)
+
+	// StringOrEnv returns the value at the supplied config path unless that value starts with a $, in which
+	// case the $ is stripped and the remainder is used as the argument to os.GetEnv.
+	//
+	// If the environment variable is not set, an error is returned. The prefix and function for recovering the environment
+	// variable can both be overridden in the Opts argument.
+	StringOrEnv(path string, o ...Opts) (string, error)
 	IntVal(path string, o ...Opts) (int, error)
 	Float64Val(path string, o ...Opts) (float64, error)
 	Array(path string, o ...Opts) ([]interface{}, error)
@@ -39,6 +50,10 @@ type Selector interface {
 type Opts struct {
 	// If this value is set, it will be returned instead of an error if there is no value at the requested path
 	OnMissing any
+	// This function will be used instead of os.GetEnv by functions that read environment variables
+	EnvAccessFunc func(string) string
+	// If set this string is the prefix that is used to indicate that a value is the name of an environment variable (default is $)
+	EnvVarPrefix string
 }
 
 // SelectorFromPathValues creates a Selector from a map of config paths (e.g. my.config.path) and their
@@ -142,6 +157,46 @@ func (dfe *DefaultSelector) StringVal(path string, o ...Opts) (string, error) {
 	}
 
 	return StringVal(path, dfe.config)
+}
+
+func (dfe *DefaultSelector) StringOrEnv(path string, o ...Opts) (string, error) {
+
+	var prefix string
+	var getEnv func(string) string
+
+	s, err := dfe.StringVal(path, o...)
+
+	if err != nil {
+		return "", err
+	}
+
+	opts := options(o)
+
+	if opts.EnvVarPrefix != "" {
+		prefix = opts.EnvVarPrefix
+	} else {
+		prefix = "$"
+	}
+
+	if strings.HasPrefix(s, prefix) {
+		varName := strings.Replace(s, prefix, "", 1)
+
+		if opts.EnvAccessFunc == nil {
+			getEnv = os.Getenv
+		} else {
+			getEnv = opts.EnvAccessFunc
+		}
+
+		if value := getEnv(varName); value == "" {
+			return "", fmt.Errorf("Environment variable %s is not set", varName)
+		} else {
+			return value, nil
+		}
+
+	} else {
+		return s, nil
+	}
+
 }
 
 func (dfe *DefaultSelector) IntVal(path string, o ...Opts) (int, error) {
