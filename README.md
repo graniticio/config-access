@@ -99,3 +99,12 @@ Configuration loaded into a ```ConfigNode``` can be used to populate the fields 
 
   ca.Populate("orderDetails.recipient", &name, config)
 ```
+
+## Overriding string values with environment variables
+
+Selectors and QuietSelectors provide a `StringOrEnv` method where value at a config path will be treated as an environment
+variable name, if it starts with a `$`. If the environment variable exists, the value of that environment variable will be
+returned.
+
+The symbol that defines the start of an environment variable can be overridden by supplying an `Opts` object as part of the
+call to `StringOrEnv`
